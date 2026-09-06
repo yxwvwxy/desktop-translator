@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+.DS_Store
+/build
+/桌面译.app
+/Desktop Translator.app
+ui-*.png
+preview*.png

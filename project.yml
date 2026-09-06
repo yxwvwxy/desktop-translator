@@ -1,0 +1,64 @@
+name: DesktopTranslator
+options:
+  bundleIdPrefix: com.desktoptranslator
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+settings:
+  MARKETING_VERSION: "1.0"
+  CURRENT_PROJECT_VERSION: "1"
+  SWIFT_VERSION: "5.0"
+  MACOSX_DEPLOYMENT_TARGET: "14.0"
+  CODE_SIGN_IDENTITY: "-"
+  CODE_SIGNING_ALLOWED: "YES"
+  DEVELOPMENT_TEAM: ""
+configs:
+  Debug: debug
+  Release: release
+targets:
+  DesktopTranslator:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/DesktopTranslator
+    settings:
+      PRODUCT_NAME: Desktop Translator
+      PRODUCT_BUNDLE_IDENTIFIER: com.desktoptranslator.app
+      INFOPLIST_FILE: Info.plist
+      GENERATE_INFOPLIST_FILE: false
+      CODE_SIGN_ENTITLEMENTS: DesktopTranslator.entitlements
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+      COMBINE_HIDPI_IMAGES: true
+    entitlements:
+      path: DesktopTranslator.entitlements
+    dependencies:
+      - target: TranslatorWidget
+        embed: true
+  TranslatorWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Sources/Widget
+      - path: Sources/DesktopTranslator/Language.swift
+      - path: Sources/DesktopTranslator/TranslatorService.swift
+      - path: Sources/DesktopTranslator/SearchHistory.swift
+    settings:
+      PRODUCT_NAME: TranslatorWidget
+      PRODUCT_BUNDLE_IDENTIFIER: com.desktoptranslator.app.widget
+      INFOPLIST_FILE: Sources/Widget/Info.plist
+      GENERATE_INFOPLIST_FILE: false
+      CODE_SIGN_ENTITLEMENTS: Sources/Widget/Widget.entitlements
+      SKIP_INSTALL: true
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"
+    entitlements:
+      path: Sources/Widget/Widget.entitlements
+schemes:
+  DesktopTranslator:
+    build:
+      targets:
+        DesktopTranslator: all
+        TranslatorWidget: all
+    run:
+      config: Release
+      executable: DesktopTranslator

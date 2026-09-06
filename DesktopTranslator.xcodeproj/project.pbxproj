@@ -1,0 +1,377 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* DesktopTranslatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* DesktopTranslatorApp.swift */; };
+		A10000000000000000000002 /* TranslatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* TranslatorViewController.swift */; };
+		A10000000000000000000003 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* Theme.swift */; };
+		A10000000000000000000004 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* Language.swift */; };
+		A10000000000000000000005 /* TranslatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* TranslatorService.swift */; };
+		A10000000000000000000006 /* DictionaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* DictionaryService.swift */; };
+		A10000000000000000000007 /* EntryRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* EntryRenderer.swift */; };
+		A10000000000000000000008 /* SearchHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* SearchHistory.swift */; };
+		A10000000000000000000009 /* TranslatorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* TranslatorWidget.swift */; };
+		A1000000000000000000000A /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* Language.swift */; };
+		A1000000000000000000000B /* TranslatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* TranslatorService.swift */; };
+		A1000000000000000000000C /* SearchHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* SearchHistory.swift */; };
+		A1000000000000000000000D /* TranslatorWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* TranslatorWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C20000000000000000000001;
+			remoteInfo = TranslatorWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F10000000000000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1000000000000000000000D /* TranslatorWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		B10000000000000000000001 /* DesktopTranslatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopTranslatorApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000002 /* TranslatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatorViewController.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Language.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* TranslatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatorService.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* DictionaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryService.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* EntryRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryRenderer.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* SearchHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistory.swift; sourceTree = "<group>"; };
+		B10000000000000000000009 /* TranslatorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatorWidget.swift; sourceTree = "<group>"; };
+		B1000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1000000000000000000000B /* WidgetInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
+		B1000000000000000000000C /* DesktopTranslator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesktopTranslator.entitlements; sourceTree = "<group>"; };
+		B1000000000000000000000D /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
+		C10000000000000000000000 /* Desktop Translator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Desktop Translator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C10000000000000000000002 /* TranslatorWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TranslatorWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F20000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F20000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G10000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000002 /* Sources */,
+				B1000000000000000000000A /* Info.plist */,
+				B1000000000000000000000C /* DesktopTranslator.entitlements */,
+				G10000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G10000000000000000000002 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000003 /* DesktopTranslator */,
+				G10000000000000000000004 /* Widget */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000003 /* DesktopTranslator */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000001 /* DesktopTranslatorApp.swift */,
+				B10000000000000000000002 /* TranslatorViewController.swift */,
+				B10000000000000000000003 /* Theme.swift */,
+				B10000000000000000000004 /* Language.swift */,
+				B10000000000000000000005 /* TranslatorService.swift */,
+				B10000000000000000000006 /* DictionaryService.swift */,
+				B10000000000000000000007 /* EntryRenderer.swift */,
+				B10000000000000000000008 /* SearchHistory.swift */,
+			);
+			path = DesktopTranslator;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000004 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000009 /* TranslatorWidget.swift */,
+				B1000000000000000000000B /* WidgetInfo.plist */,
+				B1000000000000000000000D /* Widget.entitlements */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000000 /* Desktop Translator.app */,
+				C10000000000000000000002 /* TranslatorWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C10000000000000000000001 /* DesktopTranslator */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = H10000000000000000000001 /* Build configuration list for PBXNativeTarget "DesktopTranslator" */;
+			buildPhases = (
+				I10000000000000000000001 /* Sources */,
+				F20000000000000000000001 /* Frameworks */,
+				F10000000000000000000001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				J10000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = DesktopTranslator;
+			productName = DesktopTranslator;
+			productReference = C10000000000000000000000 /* Desktop Translator.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C20000000000000000000001 /* TranslatorWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = H10000000000000000000002 /* Build configuration list for PBXNativeTarget "TranslatorWidget" */;
+			buildPhases = (
+				I10000000000000000000002 /* Sources */,
+				F20000000000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TranslatorWidget;
+			productName = TranslatorWidget;
+			productReference = C10000000000000000000002 /* TranslatorWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = H10000000000000000000003 /* Build configuration list for PBXProject "DesktopTranslator" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G10000000000000000000001;
+			productRefGroup = G10000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C10000000000000000000001 /* DesktopTranslator */,
+				C20000000000000000000001 /* TranslatorWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		I10000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* DesktopTranslatorApp.swift in Sources */,
+				A10000000000000000000002 /* TranslatorViewController.swift in Sources */,
+				A10000000000000000000003 /* Theme.swift in Sources */,
+				A10000000000000000000004 /* Language.swift in Sources */,
+				A10000000000000000000005 /* TranslatorService.swift in Sources */,
+				A10000000000000000000006 /* DictionaryService.swift in Sources */,
+				A10000000000000000000007 /* EntryRenderer.swift in Sources */,
+				A10000000000000000000008 /* SearchHistory.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		I10000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000009 /* TranslatorWidget.swift in Sources */,
+				A1000000000000000000000A /* Language.swift in Sources */,
+				A1000000000000000000000B /* TranslatorService.swift in Sources */,
+				A1000000000000000000000C /* SearchHistory.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		J10000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C20000000000000000000001 /* TranslatorWidget */;
+			targetProxy = D10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		K10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		K10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		K10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.desktoptranslator.app;
+				PRODUCT_NAME = "Desktop Translator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		K10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.desktoptranslator.app;
+				PRODUCT_NAME = "Desktop Translator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		K10000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.desktoptranslator.app.widget;
+				PRODUCT_NAME = TranslatorWidget;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		K10000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.desktoptranslator.app.widget;
+				PRODUCT_NAME = TranslatorWidget;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		H10000000000000000000001 /* Build configuration list for PBXNativeTarget "DesktopTranslator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				K10000000000000000000003 /* Debug */,
+				K10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		H10000000000000000000002 /* Build configuration list for PBXNativeTarget "TranslatorWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				K10000000000000000000005 /* Debug */,
+				K10000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		H10000000000000000000003 /* Build configuration list for PBXProject "DesktopTranslator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				K10000000000000000000001 /* Debug */,
+				K10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E10000000000000000000001 /* Project object */;
+}
