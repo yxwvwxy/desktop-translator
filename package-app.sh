@@ -54,7 +54,9 @@ done
 
 rm -f "$HOME/Desktop/Desktop Translator.app" "$HOME/Desktop/桌面译.app"
 launch_agent="$HOME/Library/LaunchAgents/com.desktoptranslator.app.plist"
+launchctl bootout "gui/$(id -u)/com.desktoptranslator.app" >/dev/null 2>&1 || true
 launchctl unload "$launch_agent" >/dev/null 2>&1 || true
 rm -f "$launch_agent"
+osascript -e 'tell application "System Events" to delete login item "Desktop Translator"' >/dev/null 2>&1 || true
 
 echo "Created $app"

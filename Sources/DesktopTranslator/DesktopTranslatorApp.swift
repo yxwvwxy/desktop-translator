@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import ServiceManagement
 
 @main
 enum AppLauncher {
@@ -23,6 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.disableRelaunchOnLogin()
+        try? SMAppService.mainApp.unregister()
         setupMainMenu()
         setupControlShortcuts()
         setupStatusItem()
@@ -31,6 +34,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         false
     }
 
@@ -142,6 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.isOpaque = true
         window.isMovableByWindowBackground = true
         window.backgroundColor = Theme.paper
+        window.isRestorable = false
         window.setContentSize(NSSize(width: 480, height: 840))
         window.center()
         window.level = desktopWidgetLevel
@@ -151,3 +159,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return controller
     }
 }
+
