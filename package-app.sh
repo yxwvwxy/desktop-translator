@@ -6,6 +6,8 @@ cd "$root"
 
 export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 
+swift "$root/generate-icon.swift" "$root"
+
 xcodebuild \
   -project "DesktopTranslator.xcodeproj" \
   -scheme DesktopTranslator \
@@ -27,8 +29,11 @@ fix_and_sign() {
   plutil -replace CFBundleExecutable -string "Desktop Translator" "$app/Contents/Info.plist" >/dev/null
   xattr -cr "$app" >/dev/null 2>&1 || true
   local appex="$app/Contents/PlugIns/TranslatorWidget.appex"
-  codesign --force --sign - --timestamp=none "$appex"
-  codesign --force --sign - --timestamp=none "$app"
+  local widget_ent="$root/Sources/Widget/Widget.entitlements"
+  local app_ent="$root/DesktopTranslator.entitlements"
+  codesign --force --sign - --timestamp=none --identifier com.desktoptranslator.app.widget --entitlements "$widget_ent" "$appex/Contents/MacOS/TranslatorWidget"
+  codesign --force --sign - --timestamp=none --identifier com.desktoptranslator.app.widget --entitlements "$widget_ent" "$appex"
+  codesign --force --sign - --timestamp=none --identifier com.desktoptranslator.app --entitlements "$app_ent" "$app"
 }
 
 register_widget() {
@@ -58,5 +63,7 @@ launchctl bootout "gui/$(id -u)/com.desktoptranslator.app" >/dev/null 2>&1 || tr
 launchctl unload "$launch_agent" >/dev/null 2>&1 || true
 rm -f "$launch_agent"
 osascript -e 'tell application "System Events" to delete login item "Desktop Translator"' >/dev/null 2>&1 || true
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "/Applications/Desktop Translator.app" >/dev/null 2>&1 || true
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$HOME/Applications/Desktop Translator.app" >/dev/null 2>&1 || true
 
 echo "Created $app"

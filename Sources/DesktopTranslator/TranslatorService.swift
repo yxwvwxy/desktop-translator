@@ -46,7 +46,7 @@ enum TranslatorService {
         guard let url = components.url else { throw TranslatorError.failed }
 
         var request = URLRequest(url: url)
-        request.timeoutInterval = 12
+        request.timeoutInterval = 5
         request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -96,7 +96,7 @@ enum TranslatorService {
         guard let url = components.url else { throw TranslatorError.failed }
 
         var request = URLRequest(url: url)
-        request.timeoutInterval = 12
+        request.timeoutInterval = 5
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {

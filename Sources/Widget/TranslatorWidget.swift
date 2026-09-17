@@ -34,7 +34,7 @@ struct TranslatorProvider: AppIntentTimelineProvider {
 
 struct TranslatorWidgetIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Translator"
-    static var description = IntentDescription("Look up words on the desktop and see recent translations.")
+    static var description = IntentDescription("Look up words on the desktop without opening the app.")
 
     @Parameter(title: "From", default: .en)
     var source: Language
@@ -70,32 +70,17 @@ struct LookupIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let translation = try await TranslatorService.translate(query, from: source, to: target)
-        SearchHistory.add(query: query, translation: translation)
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw $query.needsValueError("Type a word or phrase.")
+        }
+
+        let pair = Language.pair(detecting: trimmed, preferredTarget: target)
+        let entry = try await DictionaryService.lookup(trimmed, from: pair.0, to: pair.1)
+        let summary = entry.historyLine
+        SearchHistory.add(query: entry.query, translation: summary)
         WidgetCenter.shared.reloadAllTimelines()
-        return .result(dialog: "\(query) → \(translation)")
-    }
-}
-
-struct DeleteHistoryIntent: AppIntent {
-    static var title: LocalizedStringResource = "Delete recent lookup"
-    static var openAppWhenRun = false
-
-    @Parameter(title: "Query")
-    var query: String
-
-    init() {
-        query = ""
-    }
-
-    init(query: String) {
-        self.query = query
-    }
-
-    func perform() async throws -> some IntentResult {
-        SearchHistory.remove(query: query)
-        WidgetCenter.shared.reloadAllTimelines()
-        return .result()
+        return .result(dialog: "\(entry.query)\n\(summary)")
     }
 }
 
@@ -108,15 +93,59 @@ struct TranslatorWidget: Widget {
                 .containerBackground(Color(red: 0.973, green: 0.957, blue: 0.933), for: .widget)
         }
         .configurationDisplayName("Desktop Translator")
-        .description("Look up a word and see your 15 most recent translations.")
-        .supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
+        .description("Look up a word on the desktop. No need to open the app.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
 struct TranslatorWidgetView: View {
+    @Environment(\.widgetFamily) private var family
     var entry: TranslatorEntry
 
     var body: some View {
+        switch family {
+        case .systemSmall:
+            smallBody
+        default:
+            regularBody
+        }
+    }
+
+    private var lookupButton: some View {
+        Button(intent: LookupIntent(source: entry.source, target: entry.target)) {
+            Text("Look up")
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+        }
+        .buttonStyle(.plain)
+        .tint(Color(red: 0.545, green: 0.173, blue: 0.255))
+    }
+
+    private var smallBody: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Desktop Translator")
+                .font(.headline)
+            if let item = entry.items.first {
+                Text(item.query)
+                    .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(1)
+                Text(item.translation)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            } else {
+                Text("Tap Look up to translate here.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            lookupButton
+        }
+        .padding(4)
+    }
+
+    private var regularBody: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -127,25 +156,18 @@ struct TranslatorWidgetView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button(intent: LookupIntent(source: entry.source, target: entry.target)) {
-                    Text("Look up")
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                }
-                .buttonStyle(.plain)
-                .tint(Color(red: 0.545, green: 0.173, blue: 0.255))
+                lookupButton
             }
 
             if entry.items.isEmpty {
-                Text("Tap Look up, type a word, and the translation appears here.")
+                Text("Tap Look up, type a word, and the translation stays on this widget.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxHeight: .infinity, alignment: .top)
             } else {
                 VStack(spacing: 0) {
                     headerRow
-                    ForEach(Array(entry.items.enumerated()), id: \.offset) { _, item in
+                    ForEach(Array(entry.items.prefix(family == .systemLarge ? 8 : 4).enumerated()), id: \.offset) { _, item in
                         HStack(alignment: .top, spacing: 8) {
                             Text(item.query)
                                 .font(.system(size: 12, weight: .medium))
@@ -156,11 +178,6 @@ struct TranslatorWidgetView: View {
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, alignment: .trailing)
-                            Button(intent: DeleteHistoryIntent(query: item.query)) {
-                                Text("✕")
-                                    .font(.system(size: 11, weight: .semibold))
-                            }
-                            .buttonStyle(.plain)
                         }
                         .padding(.vertical, 4)
                         Divider().opacity(0.25)

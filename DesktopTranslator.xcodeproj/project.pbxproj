@@ -20,6 +20,8 @@
 		A1000000000000000000000B /* TranslatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* TranslatorService.swift */; };
 		A1000000000000000000000C /* SearchHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* SearchHistory.swift */; };
 		A1000000000000000000000D /* TranslatorWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* TranslatorWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1000000000000000000000E /* DictionaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* DictionaryService.swift */; };
+		A1000000000000000000000F /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000E /* AppIcon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,7 @@
 		B1000000000000000000000B /* WidgetInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
 		B1000000000000000000000C /* DesktopTranslator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesktopTranslator.entitlements; sourceTree = "<group>"; };
 		B1000000000000000000000D /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
+		B1000000000000000000000E /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		C10000000000000000000000 /* Desktop Translator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Desktop Translator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C10000000000000000000002 /* TranslatorWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TranslatorWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -88,6 +91,7 @@
 				G10000000000000000000002 /* Sources */,
 				B1000000000000000000000A /* Info.plist */,
 				B1000000000000000000000C /* DesktopTranslator.entitlements */,
+				B1000000000000000000000E /* AppIcon.icns */,
 				G10000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -144,6 +148,7 @@
 			buildPhases = (
 				I10000000000000000000001 /* Sources */,
 				F20000000000000000000001 /* Frameworks */,
+				I10000000000000000000003 /* Resources */,
 				F10000000000000000000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -201,6 +206,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		I10000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000F /* AppIcon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		I10000000000000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -225,6 +241,7 @@
 				A1000000000000000000000A /* Language.swift in Sources */,
 				A1000000000000000000000B /* TranslatorService.swift in Sources */,
 				A1000000000000000000000C /* SearchHistory.swift in Sources */,
+				A1000000000000000000000E /* DictionaryService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,6 +330,7 @@
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
 				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_ENTITLEMENTS = Sources/Widget/Widget.entitlements;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
@@ -331,6 +349,7 @@
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
 				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_ENTITLEMENTS = Sources/Widget/Widget.entitlements;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
