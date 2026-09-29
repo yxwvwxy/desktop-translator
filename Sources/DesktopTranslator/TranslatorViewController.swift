@@ -32,7 +32,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private let entryMinHeight: CGFloat = 70
     private let translationMinHeight: CGFloat = 90
     private let recentMinHeight: CGFloat = 120
-    private let inputView = NSTextView()
+    private let inputView = EntryTextView()
     private let outputView = NSTextView()
     private let spinner = NSProgressIndicator()
 
@@ -316,6 +316,10 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
             textView.isContinuousSpellCheckingEnabled = true
             textView.isAutomaticSpellingCorrectionEnabled = false
             textView.isGrammarCheckingEnabled = false
+            textView.isAutomaticQuoteSubstitutionEnabled = false
+            textView.isAutomaticDashSubstitutionEnabled = false
+            textView.isAutomaticTextReplacementEnabled = false
+            textView.isAutomaticDataDetectionEnabled = false
             textView.enabledTextCheckingTypes = NSTextCheckingResult.CheckingType.spelling.rawValue
         } else {
             textView.isContinuousSpellCheckingEnabled = false
@@ -461,6 +465,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 
     func textDidChange(_ notification: Notification) {
         guard notification.object as? NSTextView === inputView else { return }
+        if inputView.hasMarkedText() { return }
         updateDirectionLabel()
         debounceWork?.cancel()
         translateGeneration += 1
@@ -576,6 +581,32 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                     self.spinner.stopAnimation(nil)
                 }
             }
+        }
+    }
+}
+
+/// Entry field that keeps the Chinese input method in a normal composition session.
+/// Continuous spell checking and text substitution rewrite marked text, which
+/// leaves the candidate bar stuck and ignores the input-source shortcut.
+final class EntryTextView: NSTextView {
+    override func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
+        isContinuousSpellCheckingEnabled = markedString(from: string).isEmpty
+        super.setMarkedText(string, selectedRange: selectedRange, replacementRange: replacementRange)
+    }
+
+    override func unmarkText() {
+        super.unmarkText()
+        isContinuousSpellCheckingEnabled = true
+    }
+
+    private func markedString(from string: Any) -> String {
+        switch string {
+        case let value as String:
+            return value
+        case let value as NSAttributedString:
+            return value.string
+        default:
+            return ""
         }
     }
 }

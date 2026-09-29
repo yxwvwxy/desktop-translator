@@ -18,7 +18,6 @@ enum AppLauncher {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowController: NSWindowController?
     private var statusItem: NSStatusItem?
-    private var keyMonitor: Any?
     private var pinnedToDesktop = true
     private let frameAutosaveName = "DesktopTranslator.desktopFrame"
 
@@ -30,7 +29,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.disableRelaunchOnLogin()
         try? SMAppService.mainApp.register()
         setupMainMenu()
-        setupControlShortcuts()
         setupStatusItem()
         HistorySync.shared.start()
         registerWidgetExtension()
@@ -156,30 +154,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = mainMenu
     }
 
-    private func setupControlShortcuts() {
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            let usesControl = flags.contains(.control) && !flags.contains(.command)
-            guard usesControl else { return event }
-            switch event.charactersIgnoringModifiers {
-            case "c":
-                NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
-                return nil
-            case "v":
-                NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil)
-                return nil
-            case "x":
-                NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: nil)
-                return nil
-            case "a":
-                NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
-                return nil
-            default:
-                return event
-            }
-        }
-    }
-
     private func setupStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
@@ -292,14 +266,48 @@ private final class DesktopWidgetWindow: NSWindow {
         isMovableByWindowBackground = true
         if pinnedToDesktop {
             level = .normal
+            collectionBehavior = [.canJoinAllSpaces, .moveToActiveSpace]
+        }
+        // A desktop-level window can become key without activating the app.
+        // Input-source shortcuts then apply to whichever app is still active,
+        // and the candidate panel stays stuck in this window.
+        if !NSApp.isActive {
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 
     override func resignKey() {
         super.resignKey()
+        // Leave the window at normal level while this app is still active.
+        // Dropping to the desktop layer here is what traps the input method:
+        // its candidate panel is parented to this window, and the system
+        // input-source shortcut stops applying to the text field.
         if pinnedToDesktop {
             hidesOnDeactivate = false
-            level = desktopWidgetLevel
+        }
+    }
+
+    override func sendEvent(_ event: NSEvent) {
+        if let action = Self.controlEditSelector(for: event) {
+            NSApp.sendAction(action, to: nil, from: nil)
+            return
+        }
+        super.sendEvent(event)
+    }
+
+    /// Control+C/V/X/A, without a local keyDown monitor.
+    /// A keyDown monitor swallows the system input-source shortcut (usually Control+Space)
+    /// even when the event is passed through.
+    private static func controlEditSelector(for event: NSEvent) -> Selector? {
+        guard event.type == .keyDown else { return nil }
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard flags.contains(.control), !flags.contains(.command) else { return nil }
+        switch event.charactersIgnoringModifiers?.lowercased() {
+        case "c": return #selector(NSText.copy(_:))
+        case "v": return #selector(NSText.paste(_:))
+        case "x": return #selector(NSText.cut(_:))
+        case "a": return #selector(NSText.selectAll(_:))
+        default: return nil
         }
     }
 }
