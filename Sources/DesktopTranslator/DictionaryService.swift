@@ -220,7 +220,7 @@ enum DictionaryService {
         if let ec = json["ec"] as? [String: Any],
            let words = ec["word"] as? [[String: Any]],
            let first = words.first {
-            phonetic = [first["ukphone"] as? String, first["usphone"] as? String]
+            phonetic = [first["usphone"] as? String, first["ukphone"] as? String]
                 .compactMap { $0 }
                 .first { !$0.isEmpty }
                 .map { "/\($0)/" }

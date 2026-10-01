@@ -22,6 +22,7 @@
 		A1000000000000000000000D /* TranslatorWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* TranslatorWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1000000000000000000000E /* DictionaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* DictionaryService.swift */; };
 		A1000000000000000000000F /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000E /* AppIcon.icns */; };
+		A10000000000000000000010 /* Pronunciation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000F /* Pronunciation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		B1000000000000000000000C /* DesktopTranslator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesktopTranslator.entitlements; sourceTree = "<group>"; };
 		B1000000000000000000000D /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
 		B1000000000000000000000E /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		B1000000000000000000000F /* Pronunciation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pronunciation.swift; sourceTree = "<group>"; };
 		C10000000000000000000000 /* Desktop Translator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Desktop Translator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C10000000000000000000002 /* TranslatorWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TranslatorWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -115,6 +117,7 @@
 				B10000000000000000000005 /* TranslatorService.swift */,
 				B10000000000000000000006 /* DictionaryService.swift */,
 				B10000000000000000000007 /* EntryRenderer.swift */,
+				B1000000000000000000000F /* Pronunciation.swift */,
 				B10000000000000000000008 /* SearchHistory.swift */,
 			);
 			path = DesktopTranslator;
@@ -229,6 +232,7 @@
 				A10000000000000000000005 /* TranslatorService.swift in Sources */,
 				A10000000000000000000006 /* DictionaryService.swift in Sources */,
 				A10000000000000000000007 /* EntryRenderer.swift in Sources */,
+				A10000000000000000000010 /* Pronunciation.swift in Sources */,
 				A10000000000000000000008 /* SearchHistory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

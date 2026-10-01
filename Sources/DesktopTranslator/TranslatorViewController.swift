@@ -15,6 +15,12 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private let targetButton = NSPopUpButton()
     private let swapButton = NSButton()
     private let clearButton = NSButton()
+    private let inputSpeakButton = NSButton()
+    private let outputSpeakButton = NSButton()
+    private let inputReadingLabel = NSTextField(labelWithString: "")
+    private let outputReadingLabel = NSTextField(labelWithString: "")
+    private let speech = PronunciationSpeaker()
+    private var currentEntry: DictionaryEntry?
     private let inputScroll = NSScrollView()
     private let outputScroll = NSScrollView()
     private let historyScroll = NSScrollView()
@@ -89,6 +95,15 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 
         configureIconButton(swapButton, title: "⇄", action: #selector(swapLanguages))
         configureIconButton(clearButton, title: "Clear", action: #selector(clearAll))
+        configureSpeakButton(inputSpeakButton)
+        configureSpeakButton(outputSpeakButton)
+        configureReadingLabel(inputReadingLabel)
+        configureReadingLabel(outputReadingLabel)
+        inputSpeakButton.action = #selector(speakInput)
+        outputSpeakButton.action = #selector(speakOutput)
+        speech.onChange = { [weak self] key in
+            self?.updateSpeakButtons(activeKey: key)
+        }
 
         sourceButton.removeAllItems()
         sourceButton.addItem(withTitle: "Auto")
@@ -177,8 +192,8 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         lookupSplit.delegate = self
         lookupSplit.arrangesAllSubviews = true
 
-        layoutPane(inputPane, label: inputLabel, scroll: inputScroll)
-        layoutPane(outputPane, label: outputLabel, leadingControl: spinner, scroll: outputScroll)
+        layoutPane(inputPane, label: inputLabel, flexibleControl: inputReadingLabel, trailingControl: inputSpeakButton, scroll: inputScroll)
+        layoutPane(outputPane, label: outputLabel, leadingControl: spinner, flexibleControl: outputReadingLabel, trailingControl: outputSpeakButton, scroll: outputScroll)
         layoutPane(historyPane, label: historyLabel, scroll: historyScroll)
 
         lookupSplit.addArrangedSubview(inputPane)
@@ -193,12 +208,14 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         _ pane: NSView,
         label: NSTextField,
         leadingControl: NSView? = nil,
+        flexibleControl: NSView? = nil,
         trailingControl: NSView? = nil,
         scroll: NSScrollView
     ) {
         pane.wantsLayer = true
         var pieces: [NSView] = [label, scroll]
         if let leadingControl { pieces.append(leadingControl) }
+        if let flexibleControl { pieces.append(flexibleControl) }
         if let trailingControl { pieces.append(trailingControl) }
         for item in pieces {
             item.translatesAutoresizingMaskIntoConstraints = false
@@ -211,23 +228,37 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         var constraints: [NSLayoutConstraint] = [
             label.leadingAnchor.constraint(equalTo: pane.leadingAnchor, constant: 2),
             label.topAnchor.constraint(equalTo: pane.topAnchor),
+            label.heightAnchor.constraint(greaterThanOrEqualToConstant: 20),
             scroll.leadingAnchor.constraint(equalTo: pane.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: pane.trailingAnchor),
             scroll.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 6),
             scroll.bottomAnchor.constraint(equalTo: pane.bottomAnchor),
         ]
+        var previous = label.trailingAnchor
+        if let leadingControl {
+            constraints.append(contentsOf: [
+                leadingControl.leadingAnchor.constraint(equalTo: previous, constant: 8),
+                leadingControl.centerYAnchor.constraint(equalTo: label.centerYAnchor),
+            ])
+            previous = leadingControl.trailingAnchor
+        }
+        if let flexibleControl {
+            constraints.append(contentsOf: [
+                flexibleControl.leadingAnchor.constraint(equalTo: previous, constant: 8),
+                flexibleControl.centerYAnchor.constraint(equalTo: label.centerYAnchor),
+            ])
+            previous = flexibleControl.trailingAnchor
+        }
         if let trailingControl {
             constraints.append(contentsOf: [
                 trailingControl.trailingAnchor.constraint(equalTo: pane.trailingAnchor, constant: -2),
                 trailingControl.centerYAnchor.constraint(equalTo: label.centerYAnchor),
-                trailingControl.leadingAnchor.constraint(greaterThanOrEqualTo: (leadingControl ?? label).trailingAnchor, constant: 8),
+                trailingControl.widthAnchor.constraint(equalToConstant: 22),
+                trailingControl.heightAnchor.constraint(equalToConstant: 20),
+                previous.constraint(lessThanOrEqualTo: trailingControl.leadingAnchor, constant: -8),
             ])
-        }
-        if let leadingControl {
-            constraints.append(contentsOf: [
-                leadingControl.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 8),
-                leadingControl.centerYAnchor.constraint(equalTo: label.centerYAnchor),
-            ])
+        } else if flexibleControl != nil {
+            constraints.append(previous.constraint(lessThanOrEqualTo: pane.trailingAnchor, constant: -2))
         }
         NSLayoutConstraint.activate(constraints)
     }
@@ -289,6 +320,72 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 
     func splitView(_ splitView: NSSplitView, shouldAdjustSizeOfSubview view: NSView) -> Bool {
         view === outputPane
+    }
+
+    private func configureSpeakButton(_ button: NSButton) {
+        button.isBordered = false
+        button.bezelStyle = .regularSquare
+        button.imagePosition = .imageOnly
+        button.focusRingType = .none
+        button.target = self
+        button.toolTip = "Play pronunciation"
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+        setSpeakSymbol(button, active: false, enabled: true)
+    }
+
+    private func configureReadingLabel(_ label: NSTextField) {
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = Theme.ink
+        label.lineBreakMode = .byTruncatingTail
+        label.maximumNumberOfLines = 1
+        label.cell?.lineBreakMode = .byTruncatingTail
+        label.cell?.usesSingleLineMode = true
+        label.cell?.isScrollable = true
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.toolTip = "Pronunciation"
+    }
+
+    private func setSpeakSymbol(_ button: NSButton, active: Bool, enabled: Bool) {
+        let symbol = NSImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        let name = active ? "speaker.wave.2.fill" : "speaker.wave.2"
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: active ? "Stop pronunciation" : "Play pronunciation")?
+            .withSymbolConfiguration(symbol)
+        image?.isTemplate = true
+        button.image = image
+        button.contentTintColor = enabled ? Theme.seal : Theme.muted
+    }
+
+    private func updateSpeakButtons(activeKey: String?) {
+        let query = (currentEntry?.query ?? inputView.string).trimmingCharacters(in: .whitespacesAndNewlines)
+        let source = currentEntry?.sourceLanguage ?? currentPair().0
+        let inputReady = !query.isEmpty
+        let inputKey = inputReady ? PronunciationSpeaker.key(for: query, language: source) : nil
+        setSpeakSymbol(inputSpeakButton, active: activeKey != nil && activeKey == inputKey, enabled: inputReady)
+
+        let translation = currentEntry?.translation.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let outputReady = !translation.isEmpty
+        let outputKey = outputReady ? currentEntry.map { PronunciationSpeaker.key(for: $0.translation, language: $0.targetLanguage) } : nil
+        setSpeakSymbol(outputSpeakButton, active: activeKey != nil && activeKey == outputKey, enabled: outputReady)
+    }
+
+    private func refreshSpeakControls(entry: DictionaryEntry?) {
+        currentEntry = entry
+        let query = (entry?.query ?? inputView.string).trimmingCharacters(in: .whitespacesAndNewlines)
+        let source = entry?.sourceLanguage ?? currentPair().0
+        setReading(inputReadingLabel, Reading.display(for: query, language: source, dictionaryPhonetic: entry?.phonetic))
+
+        let translation = entry?.translation.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let outputReading = entry.flatMap { Reading.display(for: translation, language: $0.targetLanguage, dictionaryPhonetic: nil) }
+        setReading(outputReadingLabel, outputReading)
+        updateSpeakButtons(activeKey: speech.playingKey)
+    }
+
+    private func setReading(_ label: NSTextField, _ text: String?) {
+        let value = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        label.stringValue = value
+        label.isHidden = value.isEmpty
     }
 
     private func configureIconButton(_ button: NSButton, title: String, action: Selector) {
@@ -466,6 +563,8 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     func textDidChange(_ notification: Notification) {
         guard notification.object as? NSTextView === inputView else { return }
         if inputView.hasMarkedText() { return }
+        speech.stop()
+        refreshSpeakControls(entry: nil)
         updateDirectionLabel()
         debounceWork?.cancel()
         translateGeneration += 1
@@ -478,6 +577,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     }
 
     @objc private func sourceChanged() {
+        speech.stop()
         if sourceButton.indexOfSelectedItem == 0 {
             sourceIsAuto = true
         } else {
@@ -489,20 +589,24 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
             }
         }
         updateDirectionLabel()
+        refreshSpeakControls(entry: nil)
         startLookup()
     }
 
     @objc private func targetChanged() {
+        speech.stop()
         target = Language.allCases[targetButton.indexOfSelectedItem]
         if !sourceIsAuto, source == target {
             source = target == .zh ? .en : .zh
             sourceButton.selectItem(withTitle: source.label)
         }
         updateDirectionLabel()
+        refreshSpeakControls(entry: nil)
         startLookup()
     }
 
     @objc private func swapLanguages() {
+        speech.stop()
         if sourceIsAuto {
             target = target == .zh ? .en : .zh
             targetButton.selectItem(withTitle: target.label)
@@ -512,17 +616,30 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
             targetButton.selectItem(withTitle: target.label)
         }
         updateDirectionLabel()
+        refreshSpeakControls(entry: nil)
         startLookup()
     }
 
     @objc private func clearAll() {
         debounceWork?.cancel()
         translateGeneration += 1
+        speech.stop()
         inputView.string = ""
         inputView.checkTextInDocument(nil)
         spinner.stopAnimation(nil)
         showPlaceholder()
         updateDirectionLabel()
+    }
+
+    @objc private func speakInput() {
+        let text = currentEntry?.query ?? inputView.string
+        let language = currentEntry?.sourceLanguage ?? currentPair().0
+        speech.play(text, language: language)
+    }
+
+    @objc private func speakOutput() {
+        guard let entry = currentEntry else { return }
+        speech.play(entry.translation, language: entry.targetLanguage)
     }
 
     private func currentPair(for text: String? = nil) -> (Language, Language) {
@@ -550,6 +667,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 
     private func showPlaceholder() {
         outputView.textStorage?.setAttributedString(EntryRenderer.placeholder())
+        refreshSpeakControls(entry: nil)
     }
 
     private func startLookup() {
@@ -570,6 +688,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                 await MainActor.run {
                     guard generation == self.translateGeneration else { return }
                     self.outputView.textStorage?.setAttributedString(EntryRenderer.render(entry))
+                    self.refreshSpeakControls(entry: entry)
                     self.recordHistory(query: entry.query, translation: entry.historyLine)
                     self.spinner.stopAnimation(nil)
                 }
@@ -578,6 +697,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                     guard generation == self.translateGeneration else { return }
                     let message = (error as? LocalizedError)?.errorDescription ?? TranslatorError.failed.errorDescription ?? "Lookup failed."
                     self.outputView.textStorage?.setAttributedString(EntryRenderer.error(message))
+                    self.refreshSpeakControls(entry: nil)
                     self.spinner.stopAnimation(nil)
                 }
             }
