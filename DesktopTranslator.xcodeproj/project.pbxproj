@@ -23,6 +23,7 @@
 		A1000000000000000000000E /* DictionaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* DictionaryService.swift */; };
 		A1000000000000000000000F /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000E /* AppIcon.icns */; };
 		A10000000000000000000010 /* Pronunciation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000F /* Pronunciation.swift */; };
+		A10000000000000000000011 /* Spelling.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000010 /* Spelling.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,7 @@
 		B1000000000000000000000D /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
 		B1000000000000000000000E /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		B1000000000000000000000F /* Pronunciation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pronunciation.swift; sourceTree = "<group>"; };
+		B10000000000000000000010 /* Spelling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spelling.swift; sourceTree = "<group>"; };
 		C10000000000000000000000 /* Desktop Translator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Desktop Translator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C10000000000000000000002 /* TranslatorWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TranslatorWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -118,6 +120,7 @@
 				B10000000000000000000006 /* DictionaryService.swift */,
 				B10000000000000000000007 /* EntryRenderer.swift */,
 				B1000000000000000000000F /* Pronunciation.swift */,
+				B10000000000000000000010 /* Spelling.swift */,
 				B10000000000000000000008 /* SearchHistory.swift */,
 			);
 			path = DesktopTranslator;
@@ -233,6 +236,7 @@
 				A10000000000000000000006 /* DictionaryService.swift in Sources */,
 				A10000000000000000000007 /* EntryRenderer.swift in Sources */,
 				A10000000000000000000010 /* Pronunciation.swift in Sources */,
+				A10000000000000000000011 /* Spelling.swift in Sources */,
 				A10000000000000000000008 /* SearchHistory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

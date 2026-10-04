@@ -9,6 +9,31 @@ enum EntryRenderer {
         styled(message, color: Theme.seal, font: .systemFont(ofSize: 13))
     }
 
+    static func unknownWord(_ issues: [SpellingIssue]) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        if issues.count == 1, let issue = issues.first {
+            result.append(styled("“\(issue.word)” isn’t a word.", color: Theme.seal, font: .systemFont(ofSize: 16, weight: .medium)))
+            appendSuggestions(for: issue, to: result)
+        } else {
+            result.append(styled("These aren’t words.", color: Theme.seal, font: .systemFont(ofSize: 16, weight: .medium)))
+            for issue in issues {
+                result.append(styled("\n\(issue.word)  ", color: Theme.ink, font: .systemFont(ofSize: 13, weight: .semibold)))
+                if issue.guesses.isEmpty {
+                    result.append(styled("no suggestions", color: Theme.muted, font: .systemFont(ofSize: 13)))
+                } else {
+                    for (index, guess) in issue.guesses.prefix(5).enumerated() {
+                        if index > 0 {
+                            result.append(styled(", ", color: Theme.muted, font: .systemFont(ofSize: 13)))
+                        }
+                        result.append(suggestionLink(guess, range: issue.range))
+                    }
+                }
+            }
+        }
+        result.append(styled("\n\nRight-click the red underline to replace the spelling.", color: Theme.muted, font: .systemFont(ofSize: 13), italic: true))
+        return result
+    }
+
     static func render(_ entry: DictionaryEntry) -> NSAttributedString {
         let result = NSMutableAttributedString()
 
@@ -99,6 +124,32 @@ enum EntryRenderer {
         line.append(styled(" ", color: Theme.ink, font: .systemFont(ofSize: 13)))
         line.append(styled(senses.joined(separator: chinese ? "，" : ", "), color: Theme.ink, font: .systemFont(ofSize: 13)))
         return line
+    }
+
+    private static func appendSuggestions(for issue: SpellingIssue, to result: NSMutableAttributedString) {
+        guard !issue.guesses.isEmpty else {
+            result.append(styled("\n\nNo spelling suggestions.", color: Theme.muted, font: .systemFont(ofSize: 13), italic: true))
+            return
+        }
+        result.append(styled("\n\nDid you mean", color: Theme.ink, font: .systemFont(ofSize: 13, weight: .semibold)))
+        for guess in issue.guesses.prefix(6) {
+            result.append(styled("\n", color: Theme.ink, font: .systemFont(ofSize: 13)))
+            result.append(suggestionLink(guess, range: issue.range))
+        }
+    }
+
+    private static func suggestionLink(_ guess: String, range: NSRange) -> NSAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineSpacing = 3
+        paragraph.lineBreakMode = .byWordWrapping
+        return NSAttributedString(string: guess, attributes: [
+            .foregroundColor: Theme.seal,
+            .font: NSFont.systemFont(ofSize: 15, weight: .semibold),
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+            .link: "\(range.location)\t\(range.length)\t\(guess)",
+            .paragraphStyle: paragraph,
+            .cursor: NSCursor.pointingHand,
+        ])
     }
 
     private static func containsHan(_ text: String) -> Bool {

@@ -18,7 +18,6 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private let inputSpeakButton = NSButton()
     private let outputSpeakButton = NSButton()
     private let inputReadingLabel = NSTextField(labelWithString: "")
-    private let outputReadingLabel = NSTextField(labelWithString: "")
     private let speech = PronunciationSpeaker()
     private var currentEntry: DictionaryEntry?
     private let inputScroll = NSScrollView()
@@ -62,7 +61,6 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(inputView)
-        inputView.isContinuousSpellCheckingEnabled = true
         reloadHistory()
         applyDefaultSplitIfNeeded()
     }
@@ -98,7 +96,6 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         configureSpeakButton(inputSpeakButton)
         configureSpeakButton(outputSpeakButton)
         configureReadingLabel(inputReadingLabel)
-        configureReadingLabel(outputReadingLabel)
         inputSpeakButton.action = #selector(speakInput)
         outputSpeakButton.action = #selector(speakOutput)
         speech.onChange = { [weak self] key in
@@ -193,7 +190,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         lookupSplit.arrangesAllSubviews = true
 
         layoutPane(inputPane, label: inputLabel, flexibleControl: inputReadingLabel, trailingControl: inputSpeakButton, scroll: inputScroll)
-        layoutPane(outputPane, label: outputLabel, leadingControl: spinner, flexibleControl: outputReadingLabel, trailingControl: outputSpeakButton, scroll: outputScroll)
+        layoutPane(outputPane, label: outputLabel, leadingControl: spinner, trailingControl: outputSpeakButton, scroll: outputScroll)
         layoutPane(historyPane, label: historyLabel, scroll: historyScroll)
 
         lookupSplit.addArrangedSubview(inputPane)
@@ -372,13 +369,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 
     private func refreshSpeakControls(entry: DictionaryEntry?) {
         currentEntry = entry
-        let query = (entry?.query ?? inputView.string).trimmingCharacters(in: .whitespacesAndNewlines)
-        let source = entry?.sourceLanguage ?? currentPair().0
-        setReading(inputReadingLabel, Reading.display(for: query, language: source, dictionaryPhonetic: entry?.phonetic))
-
-        let translation = entry?.translation.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let outputReading = entry.flatMap { Reading.display(for: translation, language: $0.targetLanguage, dictionaryPhonetic: nil) }
-        setReading(outputReadingLabel, outputReading)
+        setReading(inputReadingLabel, Reading.display(dictionaryPhonetic: entry?.phonetic))
         updateSpeakButtons(activeKey: speech.playingKey)
     }
 
@@ -410,15 +401,20 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         textView.textContainer?.widthTracksTextView = true
         textView.drawsBackground = true
         if editable {
-            textView.isContinuousSpellCheckingEnabled = true
+            textView.isContinuousSpellCheckingEnabled = false
             textView.isAutomaticSpellingCorrectionEnabled = false
             textView.isGrammarCheckingEnabled = false
             textView.isAutomaticQuoteSubstitutionEnabled = false
             textView.isAutomaticDashSubstitutionEnabled = false
             textView.isAutomaticTextReplacementEnabled = false
             textView.isAutomaticDataDetectionEnabled = false
-            textView.enabledTextCheckingTypes = NSTextCheckingResult.CheckingType.spelling.rawValue
+            textView.enabledTextCheckingTypes = 0
         } else {
+            textView.linkTextAttributes = [
+                .foregroundColor: Theme.seal,
+                .underlineStyle: NSUnderlineStyle.single.rawValue,
+                .cursor: NSCursor.pointingHand,
+            ]
             textView.isContinuousSpellCheckingEnabled = false
             textView.isAutomaticSpellingCorrectionEnabled = false
         }
@@ -531,8 +527,8 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         let row = historyTable.clickedRow
         guard history.indices.contains(row) else { return }
         inputView.string = history[row].query
-        inputView.checkTextInDocument(nil)
         updateDirectionLabel()
+        updateSpellingDisplay()
         startLookup()
     }
 
@@ -566,9 +562,14 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         speech.stop()
         refreshSpeakControls(entry: nil)
         updateDirectionLabel()
+        updateSpellingDisplay()
         debounceWork?.cancel()
         translateGeneration += 1
         spinner.stopAnimation(nil)
+        if spellingRejection(for: inputView.string) != nil {
+            startLookup()
+            return
+        }
         let work = DispatchWorkItem { [weak self] in
             self?.startLookup()
         }
@@ -668,6 +669,32 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private func showPlaceholder() {
         outputView.textStorage?.setAttributedString(EntryRenderer.placeholder())
         refreshSpeakControls(entry: nil)
+        updateSpellingDisplay()
+    }
+
+    private func updateSpellingDisplay() {
+        guard !inputView.hasMarkedText() else { return }
+        let issues = Spelling.issues(
+            in: inputView.string,
+            language: currentPair().0,
+            tag: inputView.spellCheckerDocumentTag
+        )
+        inputView.markSpelling(issues)
+    }
+
+    private func spellingRejection(for text: String) -> [SpellingIssue]? {
+        Spelling.unrecognizedQuery(text, language: currentPair(for: text).0, tag: inputView.spellCheckerDocumentTag)
+    }
+
+    func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
+        guard textView === outputView, let raw = link as? String else { return false }
+        let parts = raw.split(separator: "\t", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 3, let location = Int(parts[0]), let length = Int(parts[1]) else { return false }
+        let range = NSRange(location: location, length: length)
+        guard NSMaxRange(range) <= (inputView.string as NSString).length else { return false }
+        inputView.insertText(parts[2], replacementRange: range)
+        view.window?.makeFirstResponder(inputView)
+        return true
     }
 
     private func startLookup() {
@@ -680,6 +707,12 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         translateGeneration += 1
         let generation = translateGeneration
         let pair = currentPair(for: text)
+        if let issues = Spelling.unrecognizedQuery(text, language: pair.0, tag: inputView.spellCheckerDocumentTag) {
+            outputView.textStorage?.setAttributedString(EntryRenderer.unknownWord(issues))
+            refreshSpeakControls(entry: nil)
+            spinner.stopAnimation(nil)
+            return
+        }
         spinner.startAnimation(nil)
 
         Task {
@@ -709,25 +742,103 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 /// Continuous spell checking and text substitution rewrite marked text, which
 /// leaves the candidate bar stuck and ignores the input-source shortcut.
 final class EntryTextView: NSTextView {
+    private(set) var spellingIssues: [SpellingIssue] = []
+
+    func markSpelling(_ issues: [SpellingIssue]) {
+        spellingIssues = issues
+        needsDisplay = true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        drawSpellingUnderlines(in: dirtyRect)
+    }
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let menu = super.menu(for: event) ?? NSMenu()
+        let point = convert(event.locationInWindow, from: nil)
+        let index = characterIndexForInsertion(at: point)
+        guard let issue = spellingIssues.first(where: { NSLocationInRange(index, $0.range) }) else {
+            return menu
+        }
+
+        let existing = Set(menu.items.map { $0.title.lowercased() })
+        var insertAt = 0
+        for guess in issue.guesses where !existing.contains(guess.lowercased()) {
+            let item = NSMenuItem(title: guess, action: #selector(applySpellingGuess(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = SpellingReplacement(range: issue.range, word: guess)
+            menu.insertItem(item, at: insertAt)
+            insertAt += 1
+        }
+        if issue.guesses.isEmpty, insertAt == 0 {
+            let none = NSMenuItem(title: "No suggestions", action: nil, keyEquivalent: "")
+            none.isEnabled = false
+            menu.insertItem(none, at: 0)
+            insertAt = 1
+        }
+        if insertAt > 0 {
+            menu.insertItem(NSMenuItem.separator(), at: insertAt)
+        }
+        return menu
+    }
+
     override func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
-        isContinuousSpellCheckingEnabled = markedString(from: string).isEmpty
+        isContinuousSpellCheckingEnabled = false
         super.setMarkedText(string, selectedRange: selectedRange, replacementRange: replacementRange)
     }
 
     override func unmarkText() {
         super.unmarkText()
-        isContinuousSpellCheckingEnabled = true
+        isContinuousSpellCheckingEnabled = false
     }
 
-    private func markedString(from string: Any) -> String {
-        switch string {
-        case let value as String:
-            return value
-        case let value as NSAttributedString:
-            return value.string
-        default:
-            return ""
+    @objc private func applySpellingGuess(_ sender: NSMenuItem) {
+        guard let replacement = sender.representedObject as? SpellingReplacement else { return }
+        guard NSMaxRange(replacement.range) <= (string as NSString).length else { return }
+        insertText(replacement.word, replacementRange: replacement.range)
+    }
+
+    private func drawSpellingUnderlines(in dirtyRect: NSRect) {
+        guard let layoutManager, let textContainer, !spellingIssues.isEmpty else { return }
+        NSGraphicsContext.current?.saveGraphicsState()
+        NSBezierPath(rect: dirtyRect).setClip()
+        let color = NSColor(calibratedRed: 0.86, green: 0.15, blue: 0.18, alpha: 1)
+        color.setStroke()
+        let selected = NSRange(location: NSNotFound, length: 0)
+        for issue in spellingIssues {
+            let length = (string as NSString).length
+            guard issue.range.length > 0, NSMaxRange(issue.range) <= length else { continue }
+            let glyphRange = layoutManager.glyphRange(forCharacterRange: issue.range, actualCharacterRange: nil)
+            guard glyphRange.length > 0 else { continue }
+            layoutManager.enumerateEnclosingRects(forGlyphRange: glyphRange, withinSelectedGlyphRange: selected, in: textContainer) { rect, _ in
+                let line = rect.offsetBy(dx: self.textContainerInset.width, dy: self.textContainerInset.height)
+                self.strokeWave(along: line)
+            }
         }
+        NSGraphicsContext.current?.restoreGraphicsState()
+    }
+
+    private func strokeWave(along rect: NSRect) {
+        let path = NSBezierPath()
+        let baseline = rect.maxY - 0.5
+        let left = rect.minX
+        let right = max(rect.maxX, left + 1)
+        let step: CGFloat = 2.4
+        let amplitude: CGFloat = 1.25
+        path.move(to: NSPoint(x: left, y: baseline))
+        var x = left
+        var high = false
+        while x < right {
+            let next = min(x + step, right)
+            path.line(to: NSPoint(x: next, y: high ? baseline - amplitude : baseline + amplitude))
+            x = next
+            high.toggle()
+        }
+        path.lineWidth = 0.9
+        path.lineJoinStyle = .round
+        path.lineCapStyle = .round
+        path.stroke()
     }
 }
 

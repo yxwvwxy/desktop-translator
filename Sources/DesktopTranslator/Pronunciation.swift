@@ -2,21 +2,10 @@ import AVFoundation
 import Foundation
 
 enum Reading {
-    /// Dictionary IPA when we have it, otherwise pinyin for a short Chinese phrase.
-    static func display(for text: String, language: Language, dictionaryPhonetic: String?) -> String? {
-        if let phonetic = dictionaryPhonetic?.trimmingCharacters(in: .whitespacesAndNewlines), !phonetic.isEmpty {
-            return phonetic
-        }
-        guard language == .zh else { return nil }
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed.count <= 40 else { return nil }
-        let mutable = NSMutableString(string: trimmed)
-        guard CFStringTransform(mutable, nil, kCFStringTransformMandarinLatin, false) else { return nil }
-        let reading = (mutable as String)
-            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !reading.isEmpty, reading.caseInsensitiveCompare(trimmed) != .orderedSame else { return nil }
-        return reading
+    /// Dictionary IPA, such as /həˈloʊ/. Pinyin is not shown.
+    static func display(dictionaryPhonetic: String?) -> String? {
+        let phonetic = dictionaryPhonetic?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return phonetic.isEmpty ? nil : phonetic
     }
 }
 
