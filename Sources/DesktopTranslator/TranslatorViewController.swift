@@ -38,7 +38,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private let translationMinHeight: CGFloat = 90
     private let recentMinHeight: CGFloat = 120
     private let inputView = EntryTextView()
-    private let outputView = NSTextView()
+    private let outputView = ResultTextView()
     private let spinner = NSProgressIndicator()
 
     override func loadView() {
@@ -69,6 +69,10 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         super.viewDidLayout()
         applyDefaultSplitIfNeeded()
         layoutHistoryColumns()
+        let visible = outputScroll.contentSize.height
+        if visible > 1, abs(outputView.minSize.height - visible) > 0.5 {
+            outputView.minSize = NSSize(width: 0, height: visible)
+        }
     }
 
     private func layoutHistoryColumns() {
@@ -399,6 +403,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         textView.isHorizontallyResizable = false
         textView.isVerticallyResizable = true
         textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.heightTracksTextView = false
         textView.drawsBackground = true
         if editable {
             textView.isContinuousSpellCheckingEnabled = false
@@ -649,7 +654,12 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
             if sample.isEmpty {
                 return TranslatorService.resolvedPair(source: .en, target: target)
             }
-            return Language.pair(detecting: sample, preferredTarget: target)
+            let pair = Language.pair(detecting: sample, preferredTarget: target)
+            guard pair.0 != .en, Spelling.acceptsEnglish(sample, tag: inputView.spellCheckerDocumentTag) else {
+                return pair
+            }
+            let translatedTo = pair.1 == .en ? Language.zh : pair.1
+            return (.en, translatedTo)
         }
         return TranslatorService.resolvedPair(source: source, target: target)
     }
@@ -667,9 +677,29 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     }
 
     private func showPlaceholder() {
-        outputView.textStorage?.setAttributedString(EntryRenderer.placeholder())
+        setOutput(EntryRenderer.placeholder())
         refreshSpeakControls(entry: nil)
         updateSpellingDisplay()
+    }
+
+    private func setOutput(_ text: NSAttributedString) {
+        outputView.textStorage?.setAttributedString(text)
+        outputView.setSelectedRange(NSRange(location: 0, length: 0))
+        scrollOutputToTop()
+        DispatchQueue.main.async { [weak self] in
+            self?.scrollOutputToTop()
+        }
+    }
+
+    private func scrollOutputToTop() {
+        let visible = outputScroll.contentSize.height
+        if visible > 1 {
+            outputView.minSize = NSSize(width: 0, height: visible)
+        }
+        outputView.layoutManager?.ensureLayout(for: outputView.textContainer!)
+        let clip = outputScroll.contentView
+        clip.scroll(to: .zero)
+        outputScroll.reflectScrolledClipView(clip)
     }
 
     private func updateSpellingDisplay() {
@@ -708,7 +738,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         let generation = translateGeneration
         let pair = currentPair(for: text)
         if let issues = Spelling.unrecognizedQuery(text, language: pair.0, tag: inputView.spellCheckerDocumentTag) {
-            outputView.textStorage?.setAttributedString(EntryRenderer.unknownWord(issues))
+            setOutput(EntryRenderer.unknownWord(issues))
             refreshSpeakControls(entry: nil)
             spinner.stopAnimation(nil)
             return
@@ -720,7 +750,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                 let entry = try await DictionaryService.lookup(text, from: pair.0, to: pair.1)
                 await MainActor.run {
                     guard generation == self.translateGeneration else { return }
-                    self.outputView.textStorage?.setAttributedString(EntryRenderer.render(entry))
+                    self.setOutput(EntryRenderer.render(entry))
                     self.refreshSpeakControls(entry: entry)
                     self.recordHistory(query: entry.query, translation: entry.historyLine)
                     self.spinner.stopAnimation(nil)
@@ -729,13 +759,18 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                 await MainActor.run {
                     guard generation == self.translateGeneration else { return }
                     let message = (error as? LocalizedError)?.errorDescription ?? TranslatorError.failed.errorDescription ?? "Lookup failed."
-                    self.outputView.textStorage?.setAttributedString(EntryRenderer.error(message))
+                    self.setOutput(EntryRenderer.error(message))
                     self.refreshSpeakControls(entry: nil)
                     self.spinner.stopAnimation(nil)
                 }
             }
         }
     }
+}
+
+/// Result field whose origin is the top, so a new translation is not left scrolled downward.
+final class ResultTextView: NSTextView {
+    override var isFlipped: Bool { true }
 }
 
 /// Entry field that keeps the Chinese input method in a normal composition session.

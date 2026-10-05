@@ -31,6 +31,16 @@ enum Spelling {
         }
     }
 
+    /// True when every word is accepted by an English dictionary.
+    /// Used so a word like "delimiter" is not rejected after a French guess.
+    static func acceptsEnglish(_ text: String, tag: Int) -> Bool {
+        let cores = wordCores(in: text)
+        guard !cores.isEmpty, cores.allSatisfy(isCheckableWord) else { return false }
+        let found = issues(in: text, language: .en, tag: tag)
+        let misspelled = Set(found.map { $0.word.lowercased() })
+        return cores.allSatisfy { !misspelled.contains($0.lowercased()) }
+    }
+
     /// A short query made only of words that are not real spellings.
     /// Nil means the query should still be translated.
     static func unrecognizedQuery(_ text: String, language: Language, tag: Int) -> [SpellingIssue]? {
@@ -42,6 +52,7 @@ enum Spelling {
         guard (1...3).contains(tokens.count) else { return nil }
         let cores = tokens.map { $0.trimmingCharacters(in: CharacterSet.punctuationCharacters) }
         guard cores.allSatisfy(isCheckableWord) else { return nil }
+        if acceptsEnglish(trimmed, tag: tag) { return nil }
 
         let found = issues(in: trimmed, language: language, tag: tag)
         let misspelled = Set(found.map { $0.word.lowercased() })
@@ -112,6 +123,13 @@ enum Spelling {
             if unique.count == 6 { break }
         }
         return unique
+    }
+
+    private static func wordCores(in text: String) -> [String] {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(whereSeparator: \.isWhitespace)
+            .map { String($0).trimmingCharacters(in: CharacterSet.punctuationCharacters) }
+            .filter { !$0.isEmpty }
     }
 
     private static func isCheckableWord(_ word: String) -> Bool {

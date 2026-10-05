@@ -69,6 +69,14 @@ enum Language: String, Codable, CaseIterable, AppEnum {
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(trimmed)
         if let dominant = recognizer.dominantLanguage, let mapped = fromNL(dominant) {
+            // A single word such as "delimiter" is often guessed as French or Spanish.
+            // A weak guess should stay English; "bonjour" and "hola" stay put because they score much higher.
+            if mapped != .en && isShortLatin(trimmed, latin: latin, han: han) {
+                let confidence = recognizer.languageHypotheses(withMaximum: 1)[dominant] ?? 0
+                if confidence < 0.8 {
+                    return .en
+                }
+            }
             return mapped
         }
         if latin > 0 { return .en }
@@ -83,6 +91,11 @@ enum Language: String, Codable, CaseIterable, AppEnum {
             target = source == .en ? .zh : .en
         }
         return (source, target)
+    }
+
+    private static func isShortLatin(_ text: String, latin: Int, han: Int) -> Bool {
+        guard han == 0, latin > 0, text.count <= 48 else { return false }
+        return text.split(whereSeparator: \.isWhitespace).count <= 3
     }
 
     private static func fromNL(_ language: NLLanguage) -> Language? {
