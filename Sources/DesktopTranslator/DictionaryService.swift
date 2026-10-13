@@ -91,7 +91,7 @@ struct DictionaryEntry {
         }
         if targetLanguage != .en, !examples.isEmpty {
             lines.append("")
-            lines.append("例句")
+            lines.append("Examples")
             for (index, example) in examples.prefix(2).enumerated() {
                 lines.append("\(index + 1). \(example.english)")
                 if let chinese = example.chinese, !chinese.isEmpty {

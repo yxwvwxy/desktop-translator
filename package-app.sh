@@ -57,7 +57,7 @@ for dest in "$HOME/Applications" "/Applications"; do
   fi
 done
 
-rm -f "$HOME/Desktop/Desktop Translator.app" "$HOME/Desktop/桌面译.app"
+rm -f "$HOME/Desktop/Desktop Translator.app"
 launch_agent="$HOME/Library/LaunchAgents/com.desktoptranslator.app.plist"
 launchctl bootout "gui/$(id -u)/com.desktoptranslator.app" >/dev/null 2>&1 || true
 launchctl unload "$launch_agent" >/dev/null 2>&1 || true

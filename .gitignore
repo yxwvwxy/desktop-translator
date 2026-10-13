@@ -3,7 +3,6 @@
 .DS_Store
 /build
 /dist
-/桌面译.app
 /Desktop Translator.app
 ui-*.png
 preview*.png

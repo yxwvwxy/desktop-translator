@@ -1,38 +1,38 @@
 # Desktop Translator
 
-macOS 桌面词典 / 翻译小工具：窗口可贴在桌面上，输入英文或中文自动识别方向，查释义、例句、读音，并保存最近查询。
+A macOS desktop dictionary and translator. Pin the window on your desktop, type English or Chinese (direction is detected automatically), and look up definitions, examples, pronunciation, and recent queries.
 
-**下载（推荐给普通用户）** → [GitHub Releases（最新版）](https://github.com/yxwvwxy/desktop-translator/releases/latest)
+**Download (recommended)** → [GitHub Releases (latest)](https://github.com/yxwvwxy/desktop-translator/releases/latest)
 
-## 系统要求
+## Requirements
 
-- macOS **14.0** 或更高
-- 联网（查词使用有道 / Google 等在线服务）
+- macOS **14.0** or later
+- Network access (lookups use Youdao, Google, and related online services)
 
-## 安装
+## Install
 
-1. 打开 [Releases](https://github.com/yxwvwxy/desktop-translator/releases/latest)。
-2. 下载 **`Desktop-Translator-*-macOS.zip`**。
-3. 解压，将 **`Desktop Translator.app`** 拖入「应用程序」文件夹。
-4. 首次打开若提示「无法验证开发者」：
-   - 在 Finder 中 **按住 Control 键点击** 应用 → **打开** → 再点 **打开**；或  
-   - 系统设置 → **隐私与安全性** → 允许打开。
+1. Open [Releases](https://github.com/yxwvwxy/desktop-translator/releases/latest).
+2. Download **`Desktop-Translator-*-macOS.zip`**.
+3. Unzip and drag **`Desktop Translator.app`** into **Applications**.
+4. If macOS says the app “cannot be verified” on first launch:
+   - In Finder, **Control-click** the app → **Open** → **Open** again; or
+   - **System Settings** → **Privacy & Security** → allow the app.
 
-应用使用 ad-hoc 签名，未做 Apple 公证，属正常现象。
+The build is ad-hoc signed and not notarized by Apple. That is expected for this project.
 
-## 使用说明
+## Usage
 
-- **Auto**：自动判断英/中（及常见语种）并翻译。
-- **Entry**：输入单词或句子；英文错词会显示红色波浪线，右键可改拼写。
-- **Translation**：释义与翻译；可点喇叭听读音。
-- **Recent**：最近查询；最右侧 **×** 删除单条记录。
-- 菜单栏 **Aa** 图标：钉在桌面 / 普通窗口 / 退出。
+- **Auto**: Detects English/Chinese (and other supported languages) and translates.
+- **Entry**: Type a word or phrase; misspelled English shows a red underline—right-click for suggestions.
+- **Translation**: Definitions and translation; use the speaker icon for pronunciation.
+- **Recent**: Recent lookups; **×** in the right column deletes a row.
+- Menu bar **Aa** icon: pin to desktop, open as a normal window, or quit.
 
-可选：在桌面 **编辑小组件** 里添加 **Desktop Translator** 小组件快速查词。
+Optional: add the **Desktop Translator** widget from **Edit Widgets** on the desktop for quick lookups.
 
-## 从源码构建
+## Build from source
 
-需要 **Xcode**（含 macOS SDK）：
+You need **Xcode** with the macOS SDK:
 
 ```bash
 git clone https://github.com/yxwvwxy/desktop-translator.git
@@ -41,25 +41,25 @@ chmod +x package-app.sh
 ./package-app.sh
 ```
 
-会在项目目录生成 `Desktop Translator.app`，并尝试安装到「应用程序」。
+This creates `Desktop Translator.app` in the project folder and installs it to Applications when possible.
 
-仅打包 zip（不安装，与 CI 相同）：
+Release zip only (same as CI, no install):
 
 ```bash
 chmod +x scripts/release-build.sh
 ./scripts/release-build.sh
-# 输出: dist/Desktop-Translator-<version>-macOS.zip
+# Output: dist/Desktop-Translator-<version>-macOS.zip
 ```
 
-## 发版（维护者）
+## Releases (maintainers)
 
-推送版本标签会自动构建并上传到 Release：
+Push a version tag to build and upload assets automatically:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
-## 许可证
+## License
 
-若仓库未单独声明许可证文件，使用前请自行确认；欢迎 Issue / PR。
+If no license file is present in the repository, confirm terms before use. Issues and pull requests are welcome.

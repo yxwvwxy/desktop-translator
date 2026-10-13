@@ -53,7 +53,7 @@ enum EntryRenderer {
         let examples = Array(entry.examples.prefix(2))
         if entry.targetLanguage != .en, !examples.isEmpty {
             result.append(styled("\n\n", color: Theme.ink, font: .systemFont(ofSize: 13)))
-            result.append(styled("例句", color: Theme.ink, font: .systemFont(ofSize: 13, weight: .semibold)))
+            result.append(styled("Examples", color: Theme.ink, font: .systemFont(ofSize: 13, weight: .semibold)))
             for (index, example) in examples.enumerated() {
                 result.append(styled("\n", color: Theme.ink, font: .systemFont(ofSize: 13)))
                 result.append(exampleLine(number: index + 1, example: example, query: entry.query))
