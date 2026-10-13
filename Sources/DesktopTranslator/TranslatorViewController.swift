@@ -72,13 +72,11 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     }
 
     private func layoutHistoryColumns() {
-        guard historyTable.tableColumns.count == 3 else { return }
+        guard historyTable.tableColumns.count == 2 else { return }
         let available = historyScroll.documentVisibleRect.width
         guard available > 200 else { return }
-        let deleteWidth = historyTable.tableColumns[2].width
-        let queryWidth = min(max(available * 0.32, 80), available - deleteWidth - 120)
-        historyTable.tableColumns[0].width = queryWidth
-        historyTable.tableColumns[1].width = max(120, available - queryWidth - deleteWidth)
+        historyTable.tableColumns[0].width = min(max(available * 0.32, 80), available - 160)
+        historyTable.sizeLastColumnToFit()
     }
 
     @objc private func icloudHistoryChanged() {
@@ -461,16 +459,8 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         translationColumn.minWidth = 120
         translationColumn.width = 220
 
-        let deleteColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("delete"))
-        deleteColumn.title = ""
-        deleteColumn.minWidth = 32
-        deleteColumn.maxWidth = 32
-        deleteColumn.width = 32
-        deleteColumn.resizingMask = []
-
         historyTable.addTableColumn(queryColumn)
         historyTable.addTableColumn(translationColumn)
-        historyTable.addTableColumn(deleteColumn)
         historyTable.headerView = NSTableHeaderView()
         historyTable.dataSource = self
         historyTable.delegate = self
@@ -479,7 +469,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         historyTable.usesAlternatingRowBackgroundColors = true
         historyTable.allowsEmptySelection = true
         historyTable.allowsMultipleSelection = false
-        historyTable.columnAutoresizingStyle = .noColumnAutoresizing
+        historyTable.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         historyTable.autoresizingMask = [.width]
         queryColumn.resizingMask = .userResizingMask
         translationColumn.resizingMask = [.autoresizingMask, .userResizingMask]
@@ -511,15 +501,9 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         let identifier = tableColumn?.identifier ?? NSUserInterfaceItemIdentifier("query")
         let item = history[row]
         if identifier.rawValue == "translation" {
-            let cell = tableView.makeView(withIdentifier: identifier, owner: self) as? NSTableCellView
-                ?? makeHistoryCell(identifier: identifier)
+            let cell = tableView.makeView(withIdentifier: identifier, owner: self) as? HistoryTranslationCell
+                ?? HistoryTranslationCell(identifier: identifier, target: self, action: #selector(deleteHistory(_:)))
             cell.textField?.stringValue = collapsed(item.translation)
-            return cell
-        }
-
-        if identifier.rawValue == "delete" {
-            let cell = tableView.makeView(withIdentifier: identifier, owner: self) as? HistoryDeleteCell
-                ?? HistoryDeleteCell(identifier: identifier, target: self, action: #selector(deleteHistory(_:)))
             cell.deleteButton.tag = row
             return cell
         }
@@ -971,12 +955,16 @@ private func historyTextField() -> NSTextField {
     return field
 }
 
-final class HistoryDeleteCell: NSTableCellView {
+final class HistoryTranslationCell: NSTableCellView {
     let deleteButton = NSButton()
 
     init(identifier: NSUserInterfaceItemIdentifier, target: AnyObject, action: Selector) {
         super.init(frame: .zero)
         self.identifier = identifier
+
+        let field = historyTextField()
+        addSubview(field)
+        textField = field
 
         deleteButton.isBordered = false
         deleteButton.bezelStyle = .regularSquare
@@ -993,10 +981,14 @@ final class HistoryDeleteCell: NSTableCellView {
         addSubview(deleteButton)
 
         NSLayoutConstraint.activate([
-            deleteButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            deleteButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             deleteButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             deleteButton.widthAnchor.constraint(equalToConstant: 18),
             deleteButton.heightAnchor.constraint(equalToConstant: 18),
+
+            field.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
+            field.trailingAnchor.constraint(equalTo: deleteButton.leadingAnchor, constant: -4),
+            field.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
 
