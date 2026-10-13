@@ -22,6 +22,8 @@ The build is ad-hoc signed and not notarized by Apple. That is expected for this
 
 ## Usage
 
+**This app puts lookup and your word history on one screen. Keep the window pinned on the desktop so recent words stay in view—seeing them again and again helps them stick.**
+
 - **Auto**: Detects English/Chinese (and other supported languages) and translates.
 - **Entry**: Type a word or phrase; misspelled English shows a red underline—right-click for suggestions.
 - **Translation**: Definitions and translation; use the speaker icon for pronunciation.
