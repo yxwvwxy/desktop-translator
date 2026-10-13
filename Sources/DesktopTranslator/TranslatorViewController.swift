@@ -69,10 +69,6 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         super.viewDidLayout()
         applyDefaultSplitIfNeeded()
         layoutHistoryColumns()
-        let visible = outputScroll.contentSize.height
-        if visible > 1, abs(outputView.minSize.height - visible) > 0.5 {
-            outputView.minSize = NSSize(width: 0, height: visible)
-        }
     }
 
     private func layoutHistoryColumns() {
@@ -125,7 +121,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         configureTextView(inputView, editable: true)
         configureTextView(outputView, editable: false)
         embed(inputView, in: inputScroll)
-        embed(outputView, in: outputScroll)
+        embed(outputView, in: outputScroll, pinToTop: true)
         configureLookupSplit()
         configureHistoryTable()
 
@@ -425,11 +421,23 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         }
     }
 
-    private func embed(_ textView: NSTextView, in scroll: NSScrollView) {
+    private func embed(_ textView: NSTextView, in scroll: NSScrollView, pinToTop: Bool = false) {
         scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = false
+        scroll.autohidesScrollers = true
+        scroll.verticalScrollElasticity = .automatic
+        scroll.horizontalScrollElasticity = .none
         scroll.borderType = .lineBorder
         scroll.backgroundColor = Theme.panel
         scroll.drawsBackground = true
+        scroll.automaticallyAdjustsContentInsets = false
+        scroll.contentInsets = NSEdgeInsetsZero
+        if pinToTop {
+            let clip = TopAlignedClipView()
+            clip.drawsBackground = true
+            clip.backgroundColor = Theme.panel
+            scroll.contentView = clip
+        }
         scroll.documentView = textView
         scroll.wantsLayer = true
         scroll.layer?.cornerRadius = 8
@@ -692,10 +700,6 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     }
 
     private func scrollOutputToTop() {
-        let visible = outputScroll.contentSize.height
-        if visible > 1 {
-            outputView.minSize = NSSize(width: 0, height: visible)
-        }
         outputView.layoutManager?.ensureLayout(for: outputView.textContainer!)
         let clip = outputScroll.contentView
         clip.scroll(to: .zero)
@@ -771,6 +775,20 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
 /// Result field whose origin is the top, so a new translation is not left scrolled downward.
 final class ResultTextView: NSTextView {
     override var isFlipped: Bool { true }
+}
+
+/// While the user has not scrolled down, keep the viewport at the top when the pane resizes.
+final class TopAlignedClipView: NSClipView {
+    override var isFlipped: Bool { true }
+
+    override func constrainBoundsRect(_ proposedBounds: NSRect) -> NSRect {
+        var rect = super.constrainBoundsRect(proposedBounds)
+        if bounds.origin.y <= 1 {
+            rect.origin.y = 0
+        }
+        rect.origin.x = 0
+        return rect
+    }
 }
 
 /// Entry field that keeps the Chinese input method in a normal composition session.
