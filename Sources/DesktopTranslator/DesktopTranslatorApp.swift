@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import UniformTypeIdentifiers
 import ServiceManagement
 import WidgetKit
 
@@ -20,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var pinnedToDesktop = true
     private let frameAutosaveName = "DesktopTranslator.desktopFrame"
+    private var didFinishScreenshotCapture = false
 
     private var desktopWidgetLevel: NSWindow.Level {
         NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
@@ -33,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         HistorySync.shared.start()
         registerWidgetExtension()
         putOnDesktop()
+        exportScreenshotIfRequested()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -122,6 +125,69 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
+    private func exportScreenshotIfRequested() {
+        guard let path = ProcessInfo.processInfo.environment["EXPORT_SCREENSHOT_PATH"], !path.isEmpty else { return }
+        let url = URL(fileURLWithPath: path)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            self?.captureScreenshot(to: url, thenTerminate: true)
+        }
+    }
+
+    @objc
+    func exportScreenshot() {
+        let panel = NSSavePanel()
+        panel.title = "Export Screenshot"
+        panel.nameFieldStringValue = "Desktop Translator.png"
+        panel.allowedContentTypes = [.png]
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        captureScreenshot(to: url, thenTerminate: false)
+    }
+
+    private func captureScreenshot(to url: URL, thenTerminate: Bool) {
+        guard let controller = translatorViewController() else { return }
+        didFinishScreenshotCapture = false
+        let finish = { [weak self] in
+            guard let self, !self.didFinishScreenshotCapture else { return }
+            self.didFinishScreenshotCapture = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                _ = self.writeWindowScreenshot(to: url)
+                if thenTerminate { NSApp.terminate(nil) }
+            }
+        }
+        controller.prepareForScreenshotExport(completion: finish)
+        if thenTerminate {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 25) { [weak self] in
+                guard let self, !self.didFinishScreenshotCapture else { return }
+                self.didFinishScreenshotCapture = true
+                _ = self.writeWindowScreenshot(to: url)
+                NSApp.terminate(nil)
+            }
+        }
+    }
+
+    private func translatorViewController() -> TranslatorViewController? {
+        translatorWindow()?.contentViewController as? TranslatorViewController
+    }
+
+    @discardableResult
+    private func writeWindowScreenshot(to url: URL) -> Bool {
+        guard let window = translatorWindow() else { return false }
+        window.displayIfNeeded()
+        guard let frameView = window.contentView?.superview else { return false }
+        frameView.layoutSubtreeIfNeeded()
+        let bounds = frameView.bounds
+        guard let rep = frameView.bitmapImageRepForCachingDisplay(in: bounds) else { return false }
+        frameView.cacheDisplay(in: bounds, to: rep)
+        guard let png = rep.representation(using: .png, properties: [:]) else { return false }
+        do {
+            try png.write(to: url)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     private func translatorWindow() -> NSWindow? {
         if windowController == nil {
             windowController = makeWindowController()
@@ -137,6 +203,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appMenu.addItem(withTitle: "Pin to Desktop", action: #selector(putOnDesktop), keyEquivalent: "d")
         appMenu.addItem(withTitle: "Open as Window", action: #selector(showTranslator), keyEquivalent: "n")
         appMenu.addItem(withTitle: "Add System Widget…", action: #selector(addDesktopWidget), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Export Screenshot…", action: #selector(exportScreenshot), keyEquivalent: "S")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit Desktop Translator", action: #selector(quitApp), keyEquivalent: "q")
         appItem.submenu = appMenu

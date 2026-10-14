@@ -26,6 +26,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
     private let historyTable = NSTableView()
     private let historyLabel = NSTextField(labelWithString: "Recent")
     private var ignoreNextHistoryClick = false
+    private var pendingLookupCompletion: (() -> Void)?
     private let lookupSplit = PaneSplitView()
     private let inputPane = NSView()
     private let outputPane = NSView()
@@ -539,10 +540,40 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         }
         let row = historyTable.clickedRow
         guard history.indices.contains(row) else { return }
+        loadHistoryRow(row)
+    }
+
+    /// Fills Entry/Translation from Recent for marketing screenshots (uses selected row, else first).
+    func prepareForScreenshotExport(completion: @escaping () -> Void) {
+        pendingLookupCompletion = completion
+        let row: Int
+        if historyTable.selectedRow >= 0, history.indices.contains(historyTable.selectedRow) {
+            row = historyTable.selectedRow
+        } else if !history.isEmpty {
+            row = 0
+        } else {
+            completePendingLookup()
+            return
+        }
+        loadHistoryRow(row)
+    }
+
+    private func loadHistoryRow(_ row: Int) {
+        guard history.indices.contains(row) else {
+            completePendingLookup()
+            return
+        }
+        historyTable.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
         inputView.string = history[row].query
         updateDirectionLabel()
         updateSpellingDisplay()
         startLookup()
+    }
+
+    private func completePendingLookup(for generation: Int? = nil) {
+        if let generation, generation != translateGeneration { return }
+        pendingLookupCompletion?()
+        pendingLookupCompletion = nil
     }
 
     @objc private func deleteHistory(_ sender: NSButton) {
@@ -735,6 +766,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
         let text = inputView.string
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             showPlaceholder()
+            completePendingLookup()
             return
         }
 
@@ -745,6 +777,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
             setOutput(EntryRenderer.unknownWord(issues))
             refreshSpeakControls(entry: nil)
             spinner.stopAnimation(nil)
+            completePendingLookup(for: generation)
             return
         }
         spinner.startAnimation(nil)
@@ -758,6 +791,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                     self.refreshSpeakControls(entry: entry)
                     self.recordHistory(query: entry.query, translation: entry.historyLine)
                     self.spinner.stopAnimation(nil)
+                    self.completePendingLookup(for: generation)
                 }
             } catch {
                 await MainActor.run {
@@ -766,6 +800,7 @@ final class TranslatorViewController: NSViewController, NSTextViewDelegate, NSTa
                     self.setOutput(EntryRenderer.error(message))
                     self.refreshSpeakControls(entry: nil)
                     self.spinner.stopAnimation(nil)
+                    self.completePendingLookup(for: generation)
                 }
             }
         }
