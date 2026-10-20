@@ -1,0 +1,14 @@
+---
+description: Commit and push project changes without waiting to be asked
+alwaysApply: true
+---
+
+# Auto commit and push
+
+When work in this repo produces file changes, commit them and push to the tracked remote without asking the user to say "push" or "commit".
+
+- Do this after the change is complete and working.
+- Use a concise commit message focused on why.
+- Do not force-push, amend published commits, skip hooks, or change git config.
+- Do not commit secrets, `.env`, credentials, or build artifacts.
+- If push fails, report the error; do not retry with `--force`.

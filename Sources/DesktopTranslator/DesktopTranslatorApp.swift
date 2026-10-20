@@ -177,7 +177,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let frameView = window.contentView?.superview else { return false }
         frameView.layoutSubtreeIfNeeded()
         let bounds = frameView.bounds
-        guard let rep = frameView.bitmapImageRepForCachingDisplay(in: bounds) else { return false }
+        let scale = max(window.backingScaleFactor, 2)
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int((bounds.width * scale).rounded()),
+            pixelsHigh: Int((bounds.height * scale).rounded()),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ) else { return false }
+        rep.size = bounds.size
         frameView.cacheDisplay(in: bounds, to: rep)
         guard let png = rep.representation(using: .png, properties: [:]) else { return false }
         do {
