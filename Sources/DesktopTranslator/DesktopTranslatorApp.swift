@@ -177,7 +177,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let frameView = window.contentView?.superview else { return false }
         frameView.layoutSubtreeIfNeeded()
         let bounds = frameView.bounds
-        let scale = max(window.backingScaleFactor, 2)
+        let scale = max(window.backingScaleFactor, 3)
         guard let rep = NSBitmapImageRep(
             bitmapDataPlanes: nil,
             pixelsWide: Int((bounds.width * scale).rounded()),
