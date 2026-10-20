@@ -4,7 +4,7 @@ A macOS desktop dictionary and translator. Pin the window on your desktop, type 
 
 **Download (recommended)** → [GitHub Releases (latest)](https://github.com/yxwvwxy/desktop-translator/releases/latest)
 
-<img src="https://raw.githubusercontent.com/yxwvwxy/desktop-translator/main/docs/hero.png?v=20261019" width="400" alt="Desktop Translator">
+<img src="https://raw.githubusercontent.com/yxwvwxy/desktop-translator/90fd335/docs/hero.png" width="400" alt="Desktop Translator">
 
 ## Requirements
 
