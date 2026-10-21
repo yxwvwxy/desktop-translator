@@ -129,35 +129,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     func showAbout() {
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.alignment = .center
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let alert = NSAlert()
+        alert.messageText = "Desktop Translator"
+        alert.informativeText = """
+        Version \(version)
 
-        let credits = NSMutableAttributedString(
-            string: "Latest download\n",
-            attributes: [
-                .font: NSFont.systemFont(ofSize: 11),
-                .foregroundColor: NSColor.secondaryLabelColor,
-                .paragraphStyle: paragraph,
-            ]
-        )
-        credits.append(
-            NSAttributedString(
-                string: "GitHub Releases",
-                attributes: [
-                    .font: NSFont.systemFont(ofSize: 12, weight: .medium),
-                    .link: Self.latestReleaseURL,
-                    .paragraphStyle: paragraph,
-                ]
-            )
-        )
-
-        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-            NSApp.orderFrontStandardAboutPanel(options: [
-                .applicationVersion: version,
-                .credits: credits,
-            ])
-        } else {
-            NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        Latest download:
+        \(Self.latestReleaseURL.absoluteString)
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Open Download Page")
+        alert.addButton(withTitle: "OK")
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSWorkspace.shared.open(Self.latestReleaseURL)
         }
     }
 
@@ -259,6 +244,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit Desktop Translator", action: #selector(quitApp), keyEquivalent: "q")
         appItem.submenu = appMenu
+        appItem.title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Desktop Translator"
         mainMenu.addItem(appItem)
 
         let editItem = NSMenuItem()
@@ -284,6 +270,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Show on Desktop", action: #selector(putOnDesktop), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Open as Window", action: #selector(showTranslator), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Add System Widget…", action: #selector(addDesktopWidget), keyEquivalent: ""))
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "About…", action: #selector(showAbout), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
         item.menu = menu
