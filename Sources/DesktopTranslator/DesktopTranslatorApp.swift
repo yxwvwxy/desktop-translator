@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pinnedToDesktop = true
     private let frameAutosaveName = "DesktopTranslator.desktopFrame"
     private var didFinishScreenshotCapture = false
+    private var aboutPanel: NSPanel?
 
     private var desktopWidgetLevel: NSWindow.Level {
         NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
@@ -129,21 +130,115 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     func showAbout() {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        let alert = NSAlert()
-        alert.messageText = "Desktop Translator"
-        alert.informativeText = """
-        Version \(version)
-
-        Latest download:
-        \(Self.latestReleaseURL.absoluteString)
-        """
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Download Page")
-        alert.addButton(withTitle: "OK")
-        if alert.runModal() == .alertFirstButtonReturn {
-            NSWorkspace.shared.open(Self.latestReleaseURL)
+        if aboutPanel == nil {
+            aboutPanel = makeAboutPanel()
         }
+        guard let panel = aboutPanel else { return }
+        panel.center()
+        NSApp.activate(ignoringOtherApps: true)
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    @objc
+    private func openLatestRelease() {
+        NSWorkspace.shared.open(Self.latestReleaseURL)
+    }
+
+    @objc
+    private func closeAboutPanel() {
+        aboutPanel?.orderOut(nil)
+    }
+
+    private func makeAboutPanel() -> NSPanel {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 300))
+        root.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .centerX
+        stack.spacing = 6
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(stack)
+
+        let iconView = NSImageView()
+        iconView.image = NSApp.applicationIconImage
+        iconView.imageScaling = .scaleProportionallyUpOrDown
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            iconView.widthAnchor.constraint(equalToConstant: 64),
+            iconView.heightAnchor.constraint(equalToConstant: 64),
+        ])
+
+        let title = NSTextField(labelWithString: "Desktop Translator")
+        title.font = .systemFont(ofSize: 20, weight: .semibold)
+        title.alignment = .center
+
+        let versionLabel = NSTextField(labelWithString: "Version \(version)")
+        versionLabel.font = .systemFont(ofSize: 12)
+        versionLabel.textColor = .secondaryLabelColor
+        versionLabel.alignment = .center
+
+        let divider = NSBox()
+        divider.boxType = .separator
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divider.widthAnchor.constraint(equalToConstant: 320).isActive = true
+
+        let downloadHeading = NSTextField(labelWithString: "Latest download")
+        downloadHeading.font = .systemFont(ofSize: 12, weight: .semibold)
+        downloadHeading.alignment = .center
+
+        let linkButton = NSButton(
+            title: Self.latestReleaseURL.absoluteString,
+            target: self,
+            action: #selector(openLatestRelease)
+        )
+        linkButton.bezelStyle = .inline
+        linkButton.isBordered = false
+        linkButton.font = .systemFont(ofSize: 11)
+        linkButton.contentTintColor = .linkColor
+        linkButton.toolTip = "Open latest release on GitHub"
+
+        let openButton = NSButton(title: "Open Download Page", target: self, action: #selector(openLatestRelease))
+        openButton.bezelStyle = .rounded
+        openButton.controlSize = .regular
+
+        let okButton = NSButton(title: "OK", target: self, action: #selector(closeAboutPanel))
+        okButton.bezelStyle = .rounded
+        okButton.keyEquivalent = "\r"
+
+        stack.addArrangedSubview(iconView)
+        stack.addArrangedSubview(title)
+        stack.addArrangedSubview(versionLabel)
+        stack.setCustomSpacing(14, after: versionLabel)
+        stack.addArrangedSubview(divider)
+        stack.setCustomSpacing(10, after: divider)
+        stack.addArrangedSubview(downloadHeading)
+        stack.addArrangedSubview(linkButton)
+        stack.setCustomSpacing(12, after: linkButton)
+        stack.addArrangedSubview(openButton)
+        stack.setCustomSpacing(8, after: openButton)
+        stack.addArrangedSubview(okButton)
+
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: root.topAnchor, constant: 22),
+            stack.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -20),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: root.bottomAnchor, constant: -18),
+        ])
+
+        let panel = NSPanel(
+            contentRect: root.frame,
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "About Desktop Translator"
+        panel.contentView = root
+        panel.isFloatingPanel = false
+        panel.hidesOnDeactivate = false
+        panel.isReleasedWhenClosed = false
+        return panel
     }
 
     private func exportScreenshotIfRequested() {
