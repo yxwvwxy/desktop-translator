@@ -17,6 +17,8 @@ enum AppLauncher {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private static let latestReleaseURL = URL(string: "https://github.com/yxwvwxy/desktop-translator/releases/latest")!
+
     private var windowController: NSWindowController?
     private var statusItem: NSStatusItem?
     private var pinnedToDesktop = true
@@ -125,6 +127,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
+    @objc
+    func showAbout() {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+
+        let credits = NSMutableAttributedString(
+            string: "Latest download\n",
+            attributes: [
+                .font: NSFont.systemFont(ofSize: 11),
+                .foregroundColor: NSColor.secondaryLabelColor,
+                .paragraphStyle: paragraph,
+            ]
+        )
+        credits.append(
+            NSAttributedString(
+                string: "GitHub Releases",
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: 12, weight: .medium),
+                    .link: Self.latestReleaseURL,
+                    .paragraphStyle: paragraph,
+                ]
+            )
+        )
+
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            NSApp.orderFrontStandardAboutPanel(options: [
+                .applicationVersion: version,
+                .credits: credits,
+            ])
+        } else {
+            NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        }
+    }
+
     private func exportScreenshotIfRequested() {
         guard let path = ProcessInfo.processInfo.environment["EXPORT_SCREENSHOT_PATH"], !path.isEmpty else { return }
         let url = URL(fileURLWithPath: path)
@@ -213,6 +249,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "About Desktop Translator", action: #selector(showAbout), keyEquivalent: "")
+        appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Pin to Desktop", action: #selector(putOnDesktop), keyEquivalent: "d")
         appMenu.addItem(withTitle: "Open as Window", action: #selector(showTranslator), keyEquivalent: "n")
         appMenu.addItem(withTitle: "Add System Widget…", action: #selector(addDesktopWidget), keyEquivalent: "")
